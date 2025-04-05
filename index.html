@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <link rel="icon" type="image/png" href="icon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publicador</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: url('https://playerconnect.org/wp-content/uploads/2023/10/Como-jogar-CS-GO-online-em-2024.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+        }
+        .container {
+            background: rgba(50, 50, 70, 0.9);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #d802f5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .form-container {
+            display: none;
+            margin-top: 1rem;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Publicador</h2>
+        <button onclick="toggleForm('drop-form')">Publicar Drop</button>
+        <button onclick="toggleForm('search-form')">Publicar Busca</button>
+        <button onclick="toggleForm('deposit-form')">Publicar Depósito</button>
+
+        <!-- Drop -->
+        <div id="drop-form" class="form-container">
+            <h3>Drop</h3>
+            <input type="text" id="drop-image" placeholder="Link da Imagem">
+            <input type="text" id="drop-name" placeholder="Nome da Skin">
+            <input type="text" id="drop-value" placeholder="Valor (R$)">
+            <button onclick="sendTextToDiscord('drop')">Publicar</button>
+        </div>
+
+        <!-- Busca -->
+        <div id="search-form" class="form-container">
+            <h3>Busca</h3>
+            <input type="text" id="search-image" placeholder="Link da Imagem">
+            <input type="text" id="search-name" placeholder="Nome da Skin">
+            <input type="text" id="search-value" placeholder="Valor (R$)">
+            <button onclick="sendTextToDiscord('search')">Publicar</button>
+        </div>
+
+        <!-- Depósito -->
+        <div id="deposit-form" class="form-container">
+            <h3>Depósito</h3>
+            <input type="file" id="deposit-image" accept="image/*">
+            <input type="text" id="deposit-valor" placeholder="Valor Depositado (R$)">
+            <button onclick="sendDeposit()">Publicar</button>
+        </div>
+    </div>
+
+    <script>
+    const WEBHOOKS = {
+      drop: "https://discordapp.com/api/webhooks/1356895033068097597/CsSnKkJCHu7LYGvdqJfLdvIbFMYfSrEnZ6jNAsoX68SHHAQRz7ZUOjSCX0t_OdqfkXQ4",
+      search: "https://discordapp.com/api/webhooks/1357368496299966466/5kmEfSm78q0zvYIsSYCpcgocJA_S10Xc0aW2B8t_NP4IEGIsestGCLq9J06rPiGL-7O0",
+      deposit: "https://discord.com/api/webhooks/1357446218153988226/Q1kIiEqm7MGMoyKgvkknAKCBxNFT6Xstjp5AsApGlnqHzGczkH1SSdaVwiEWbP0_uSaY" // troque por seu webhook real de depósitos
+    };
+
+        function toggleForm(formId) {
+            document.querySelectorAll('.form-container').forEach(form => {
+                form.style.display = 'none';
+            });
+            document.getElementById(formId).style.display = 'block';
+        }
+
+        function sendTextToDiscord(type) {
+            const imgUrl = document.getElementById(`${type}-image`).value;
+            const name = document.getElementById(`${type}-name`).value;
+            const value = document.getElementById(`${type}-value`).value;
+
+            if (!imgUrl || !name || !value) return;
+
+            const payload = {
+                embeds: [{
+                    title: name,
+                    description: `💸 Valor: **R$ ${value}**`,
+                    image: { url: imgUrl },
+                    color: 5763719
+                }]
+            };
+
+            fetch(WEBHOOKS[type], {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                document.getElementById(`${type}-image`).value = "";
+                document.getElementById(`${type}-name`).value = "";
+                document.getElementById(`${type}-value`).value = "";
+            });
+        }
+
+        function sendDeposit() {
+            const image = document.getElementById("deposit-image").files[0];
+            const value = document.getElementById("deposit-valor").value;
+
+            if (!image || !value) return;
+
+            const formData = new FormData();
+            formData.append("file", image);
+            formData.append("payload_json", JSON.stringify({
+                content: `💰 Novo depósito de **R$ ${value}** realizado!`
+            }));
+
+            fetch(WEBHOOKS.deposit, {
+                method: "POST",
+                body: formData
+            }).then(() => {
+                document.getElementById("deposit-image").value = "";
+                document.getElementById("deposit-valor").value = "";
+            });
+        }
+    </script>
+</body>
+</html>
